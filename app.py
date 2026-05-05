@@ -1,16 +1,17 @@
 import streamlit as st
 import pandas as pd
+import os
 
 # Настройка страницы
 st.set_page_config(page_title="EcoJourney Challenge", layout="centered")
 
-# Инициализация "базы данных" в памяти (чтобы баллы сохранялись во время сессии)
+# Инициализация баллов в памяти сессии
 if 'score' not in st.session_state:
     st.session_state.score = 0
 if 'tasks_done' not in st.session_state:
     st.session_state.tasks_done = 0
 
-# Боковое меню для навигации
+# Боковое меню
 menu = ["Логин", "Карта проблем", "Задания", "Рейтинг", "Диагностика", "Соцсети"]
 choice = st.sidebar.selectbox("Меню", menu)
 
@@ -18,7 +19,7 @@ choice = st.sidebar.selectbox("Меню", menu)
 if choice == "Логин":
     st.title("🌱 EcoJourney Challenge")
     auth_mode = st.radio("Выберите действие", ["Войти", "Создать аккаунт"])
-
+    
     if auth_mode == "Создать аккаунт":
         name = st.text_input("Ваше имя")
         nickname = st.text_input("Никнейм")
@@ -33,28 +34,37 @@ if choice == "Логин":
 # --- 2. КАРТА / СПИСОК ПРОБЛЕМ ---
 elif choice == "Карта проблем":
     st.header("📍 Эко-точки города")
-    problem = st.selectbox("Выберите объект на карте", ["Центральный парк", "Река Илек", "Жилой массив"])
-
+    problem = st.selectbox("Выберите объект на карте", ["Центральный парк", "Река Илек"])
+    
     if problem == "Центральный парк":
         st.subheader("Проблема: Свалка мусора у входа")
-        st.image("park.jpg",caption="Свалка в Центральном парке")
+        # Проверяем, загружен ли файл park.jpg на GitHub
+        if os.path.exists("park.jpg"):
+            st.image("park.jpg", caption="Свалка в Центральном парке")
+        else:
+            st.error("Файл 'park.jpg' не найден. Убедись, что загрузил его на GitHub в корень проекта.")
         st.info("Статистика: В вашем городе каждый день собирается около 150 кг мусора.")
+
     elif problem == "Река Илек":
         st.subheader("Проблема: Загрязнение береговой линии")
-        st.image("river.jpg",caption="Берег реки Илек")
+        # Проверяем наличие river.jpg
+        if os.path.exists("river.jpg"):
+            st.image("river.jpg", caption="Берег реки Илек")
+        else:
+            st.warning("Файл 'river.jpg' пока не загружен на сервер.")
         st.write("Нужна очистка берега от пластика.")
 
 # --- 3. ЗАДАНИЯ (ЧЕЛЛЕНДЖИ) ---
 elif choice == "Задания":
     st.header("🏆 Твои Эко-задания")
     st.write(f"Твои баллы: **{st.session_state.score}** | Выполнено: **{st.session_state.tasks_done}**")
-
+    
     task = st.selectbox("Выбери задание", [
         "Сфоткай мусор и отправь в приложение (+10 баллов)",
         "Найди пункт переработки (+30 баллов)",
         "Собери команду для тазалау-акции (+50 баллов)"
     ])
-
+    
     uploaded_file = st.file_uploader("Загрузи фото-подтверждение", type=['jpg', 'png'])
     if st.button("Отправить на проверку"):
         if uploaded_file:
@@ -75,15 +85,14 @@ elif choice == "Рейтинг":
     }
     df = pd.DataFrame(data).sort_values(by="Баллы", ascending=False)
     st.table(df)
-    st.warning(
-        "🔥 У кого больше всего баллов и активности в соцсетях, тот получает экотрип по красивым местам Казахстана!")
+    st.info("💡 У кого больше всего баллов и активности в соцсетях, тот получает экотрип по Казахстану!")
 
 # --- 5. ДИАГНОСТИКА ---
 elif choice == "Диагностика":
     st.header("🧠 Эко-тест")
     q1 = st.radio("Как долго разлагается пластиковая бутылка?", ["10 лет", "100 лет", "450 лет"])
     q2 = st.radio("Сортируете ли вы мусор дома?", ["Да", "Нет", "Иногда"])
-
+    
     if st.button("Узнать результат"):
         if q2 == "Да":
             st.balloons()
@@ -97,6 +106,7 @@ elif choice == "Соцсети":
     st.write("Поделись своими успехами, используя хэштег:")
     st.code("#EcoJourneyChallenge", language="text")
     st.write("Выбери платформу:")
-    st.button("Поделиться в Instagram")
-    st.button("Поделиться в TikTok")
-    st.button("Поделиться в Telegram")
+    col1, col2, col3 = st.columns(3)
+    with col1: st.button("Instagram")
+    with col2: st.button("TikTok")
+    with col3: st.button("Telegram")
