@@ -5,113 +5,108 @@ import os
 # Настройка страницы
 st.set_page_config(page_title="EcoJourney Challenge", layout="centered")
 
-# --- ИНИЦИАЛИЗАЦИЯ (SESSION STATE) ---
+# Инициализация баллов в памяти сессии
 if 'score' not in st.session_state:
     st.session_state.score = 0
 if 'tasks_done' not in st.session_state:
     st.session_state.tasks_done = 0
 
-# Это КЛЮЧЕВАЯ переменная для перехода
-if 'choice' not in st.session_state:
-    st.session_state.choice = "Логин"
-
-# Список страниц
+# Боковое меню
 menu = ["Логин", "Карта проблем", "Задания", "Рейтинг", "Диагностика", "Соцсети"]
+choice = st.sidebar.selectbox("Меню", menu)
 
-# --- БОКОВОЕ МЕНЮ ---
-# Мы используем индекс, который привязан к st.session_state.choice
-current_index = menu.index(st.session_state.choice)
-
-choice = st.sidebar.selectbox(
-    "Меню навигации", 
-    menu, 
-    index=current_index,
-    key="navigation_box"
-)
-
-# Если пользователь вручную кликнул в боковом меню, обновляем состояние
-if choice != st.session_state.choice:
-    st.session_state.choice = choice
-    st.rerun()
-
-# --- 1. СТАРТОВЫЙ ЭКРАН (ЛОГИН) ---
-if st.session_state.choice == "Логин":
+# --- 1. СТАРТОВЫЙ ЭКРАН ---
+if choice == "Логин":
     st.title("🌱 EcoJourney Challenge")
     auth_mode = st.radio("Выберите действие", ["Войти", "Создать аккаунт"])
     
     if auth_mode == "Создать аккаунт":
-        st.subheader("Регистрация нового эко-героя")
         name = st.text_input("Ваше имя")
-        nickname = st.text_input("Придумайте никнейм")
-        region = st.selectbox("Ваш город", ["Актобе", "Алматы", "Астана", "Шымкент", "Другой"])
-        
-        if st.button("Зарегистрироваться", key="reg_btn"):
-            if nickname:
-                st.success(f"Регистрация прошла успешно, {nickname}!")
-                # ПРИНУДИТЕЛЬНЫЙ ПЕРЕХОД
-                st.session_state.choice = "Карта проблем"
-                st.rerun()
-            else:
-                st.error("Введите никнейм!")
-
+        nickname = st.text_input("Никнейм")
+        region = st.selectbox("Регион", ["Актобе", "Алматы", "Астана", "Шымкент", "Другой"])
+        if st.button("Зарегистрироваться"):
+            st.success(f"Привет, {nickname}! Добро пожаловать в команду {region}!")
     else:
-        st.subheader("Вход в личный кабинет")
-        login_nick = st.text_input("Никнейм")
+        st.text_input("Никнейм")
         st.text_input("Пароль", type="password")
-        
-        if st.button("Войти", key="login_btn"):
-            if login_nick:
-                st.success("Вход выполнен!")
-                # ПРИНУДИТЕЛЬНЫЙ ПЕРЕХОД
-                st.session_state.choice = "Карта проблем"
-                st.rerun()
-            else:
-                st.error("Введите никнейм!")
+        st.button("Войти")
 
 # --- 2. КАРТА / СПИСОК ПРОБЛЕМ ---
-elif st.session_state.choice == "Карта проблем":
+elif choice == "Карта проблем":
     st.header("📍 Эко-точки города")
-    problem = st.selectbox("Объекты", ["Центральный парк", "Река Илек"])
+    problem = st.selectbox("Выберите объект на карте", ["Центральный парк", "Река Илек"])
     
     if problem == "Центральный парк":
-        st.subheader("Свалка мусора у входа")
+        st.subheader("Проблема: Свалка мусора у входа")
+        # Проверяем, загружен ли файл park.jpg на GitHub
         if os.path.exists("park.jpg"):
-            st.image("park.jpg")
+            st.image("park.jpg", caption="Свалка в Центральном парке")
         else:
-            st.info("Здесь будет фото парка (загрузи park.jpg на GitHub)")
-    
-    elif problem == "Река Илек":
-        st.subheader("Загрязнение берега")
-        if os.path.exists("river.jpg"):
-            st.image("river.jpg")
-        else:
-            st.info("Здесь будет фото реки (загрузи river.jpg на GitHub)")
+            st.error("Файл 'park.jpg' не найден. Убедись, что загрузил его на GitHub в корень проекта.")
+        st.info("Статистика: В вашем городе каждый день собирается около 150 кг мусора.")
 
-# --- 3. ЗАДАНИЯ ---
-elif st.session_state.choice == "Задания":
+    elif problem == "Река Илек":
+        st.subheader("Проблема: Загрязнение береговой линии")
+        # Проверяем наличие river.jpg
+        if os.path.exists("river.jpg"):
+            st.image("river.jpg", caption="Берег реки Илек")
+        else:
+            st.warning("Файл 'river.jpg' пока не загружен на сервер.")
+        st.write("Нужна очистка берега от пластика.")
+
+# --- 3. ЗАДАНИЯ (ЧЕЛЛЕНДЖИ) ---
+elif choice == "Задания":
     st.header("🏆 Твои Эко-задания")
-    st.write(f"Баллы: {st.session_state.score}")
+    st.write(f"Твои баллы: **{st.session_state.score}** | Выполнено: **{st.session_state.tasks_done}**")
     
-    task = st.selectbox("Выбери задание", ["Сфоткай мусор", "Найди пункт переработки"])
-    if st.button("Отправить"):
-        st.session_state.score += 20
-        st.session_state.tasks_done += 1
-        st.balloons()
-        st.rerun()
+    task = st.selectbox("Выбери задание", [
+        "Сфоткай мусор и отправь в приложение (+10 баллов)",
+        "Найди пункт переработки (+30 баллов)",
+        "Собери команду для тазалау-акции (+50 баллов)"
+    ])
+    
+    uploaded_file = st.file_uploader("Загрузи фото-подтверждение", type=['jpg', 'png'])
+    if st.button("Отправить на проверку"):
+        if uploaded_file:
+            points = 10 if "Сфоткай" in task else 30 if "Найди" in task else 50
+            st.session_state.score += points
+            st.session_state.tasks_done += 1
+            st.success(f"Принято! Начислено {points} баллов.")
+        else:
+            st.warning("Сначала прикрепи фото!")
 
 # --- 4. РЕЙТИНГ ---
-elif st.session_state.choice == "Рейтинг":
-    st.header("📊 Рейтинг")
-    data = {"Никнейм": ["User1", "User2", "You"], "Баллы": [100, 80, st.session_state.score]}
-    st.table(pd.DataFrame(data))
+elif choice == "Рейтинг":
+    st.header("📊 Топ Эко-героев")
+    data = {
+        "Никнейм": ["GreenGuy", "EcoQueen", "Taza_Alem", "User123", "You"],
+        "Баллы": [500, 450, 320, 210, st.session_state.score],
+        "Заданий": [15, 12, 10, 5, st.session_state.tasks_done]
+    }
+    df = pd.DataFrame(data).sort_values(by="Баллы", ascending=False)
+    st.table(df)
+    st.info("💡 У кого больше всего баллов и активности в соцсетях, тот получает экотрип по Казахстану!")
 
 # --- 5. ДИАГНОСТИКА ---
-elif st.session_state.choice == "Диагностика":
-    st.header("🧠 Тест")
-    if st.button("Я профи"):
-        st.success("Отлично!")
+elif choice == "Диагностика":
+    st.header("🧠 Эко-тест")
+    q1 = st.radio("Как долго разлагается пластиковая бутылка?", ["10 лет", "100 лет", "450 лет"])
+    q2 = st.radio("Сортируете ли вы мусор дома?", ["Да", "Нет", "Иногда"])
+    
+    if st.button("Узнать результат"):
+        if q2 == "Да":
+            st.balloons()
+            st.success("Твой статус: Охранник природы! 🌲")
+        else:
+            st.info("Твой статус: Новичок. Давай исправлять! 🌱")
 
-# --- 6. СОЦСЕТИ ---
-elif st.session_state.choice == "Соцсети":
-    st.header("📢 Соцсети")
-    st.write("Хэштег: #EcoJourneyChallenge")
+# --- 6. СОЦИАЛЬНЫЕ СЕТИ ---
+elif choice == "Соцсети":
+    st.header("📢 Расскажи друзьям")
+    st.write("Поделись своими успехами, используя хэштег:")
+    st.code("#EcoJourneyChallenge", language="text")
+    st.write("Выбери платформу:")
+    col1, col2, col3 = st.columns(3)
+    with col1: st.button("Instagram")
+    with col2: st.button("TikTok")
+    with col3: st.button("Telegram")
