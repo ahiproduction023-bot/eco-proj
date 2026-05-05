@@ -37,10 +37,11 @@ elif choice == "Карта проблем":
 
     if problem == "Центральный парк":
         st.subheader("Проблема: Свалка мусора у входа")
-        st.image("https://via.placeholder.com/400x200?text=Photo+of+Trash+in+Park")
+        st.image("park.jpg",caption="Свалка в Центральном парке")
         st.info("Статистика: В вашем городе каждый день собирается около 150 кг мусора.")
     elif problem == "Река Илек":
         st.subheader("Проблема: Загрязнение береговой линии")
+        st.image("river.jpg",caption="Берег реки Илек")
         st.write("Нужна очистка берега от пластика.")
 
 # --- 3. ЗАДАНИЯ (ЧЕЛЛЕНДЖИ) ---
